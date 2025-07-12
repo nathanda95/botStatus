@@ -1,0 +1,10 @@
+# Ne pas suivre les dépendances Node.js
+node_modules/
+
+# Ne pas suivre la config sensible (token, etc.)
+#config.json
+
+# Fichiers système ou d’éditeur
+.DS_Store
+.env
+*.log
