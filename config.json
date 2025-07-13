@@ -1,0 +1,8 @@
+{
+  "token": "YOUR-TOKEN-HERE",
+  "servers": [],
+  "checkInterval": 30000,
+  "channelIds": [],
+  "statusMessageMap": {},
+  "notifyUserIds": []
+}
