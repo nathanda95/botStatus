@@ -242,4 +242,40 @@ client.on('messageCreate', async (message) => {
   }
 });
 
+
+async function shutdownProcedure() {
+  console.log('⏳ Arrêt du bot : mise à jour des statuts à OFF...');
+
+  const embed = new EmbedBuilder()
+    .setTitle('🖥️ État des serveurs')
+    .setColor(0xff0000)
+    .setTimestamp()
+    .setDescription(
+      config.servers && config.servers.length > 0
+        ? config.servers.map(s => `• **${s.name}** (${s.host}:${s.port}) → 🔴 Hors ligne`).join('\n')
+        : 'Aucun serveur surveillé.'
+    );
+
+  if (Array.isArray(config.channelIds) && config.statusMessageMap) {
+    for (const channelId of config.channelIds) {
+      const messageId = config.statusMessageMap[channelId];
+      try {
+        const channel = await client.channels.fetch(channelId);
+        const message = await channel.messages.fetch(messageId);
+        await message.edit({ embeds: [embed] });
+        console.log(`✅ Statut mis à jour dans le salon ${channelId}`);
+      } catch (err) {
+        console.warn(`⚠️ Erreur mise à jour salon ${channelId} : ${err.message}`);
+      }
+    }
+  }
+
+  console.log('✅ Mise à jour terminée. Fermeture propre du bot.');
+  process.exit(0);
+}
+
+process.on('SIGINT', shutdownProcedure);  // Ctrl+C
+process.on('SIGTERM', shutdownProcedure); // service systemd ou arrêt système
+
+
 client.login(config.token);
