@@ -20,7 +20,7 @@ client.once('ready', () => {
   setInterval(async () => {
     const embed = new EmbedBuilder()
       .setTitle('🖥️ État des serveurs')
-      .setColor(0x0099ff)
+      .setColor(0x00e100)
       .setTimestamp();
 
     let description = '';
