@@ -53,14 +53,24 @@ client.once('ready', async () => {
       for (const server of servers) {
         const res = await isServerUp(server.host, server.port);
         const ok = res && res.ok;
-        const latencyStr = res && res.latency != null ? ` (${res.latency} ms)` : '';
-        description += `• **${server.name}** (${server.host}:${server.port}) → ${ok ? '🟢 En ligne' : '🔴 Hors ligne'}${latencyStr}\n`;
+        const latency = res && res.latency != null ? res.latency : null;
+        const latencyStr = latency != null ? ` (${latency} ms)` : '';
+        let statusEmoji;
+        if (!ok) statusEmoji = '🔴';
+        else if (latency != null && latency > 100) statusEmoji = '🟠';
+        else statusEmoji = '🟢';
+        description += `• **${server.name}** (${server.host}:${server.port}) → ${statusEmoji} ${ok ? 'En ligne' : 'Hors ligne'}${latencyStr}\n`;
       }
       for (const site of sites) {
         const res = await isServerUp({ url: site.url });
         const ok = res && res.ok;
-        const latencyStr = res && res.latency != null ? ` (${res.latency} ms)` : '';
-        description += `• **${site.name}** (${site.url}) → ${ok ? '🟢 En ligne' : '🔴 Hors ligne'}${latencyStr}\n`;
+        const latency = res && res.latency != null ? res.latency : null;
+        const latencyStr = latency != null ? ` (${latency} ms)` : '';
+        let statusEmoji;
+        if (!ok) statusEmoji = '🔴';
+        else if (latency != null && latency > 100) statusEmoji = '🟠';
+        else statusEmoji = '🟢';
+        description += `• **${site.name}** (${site.url}) → ${statusEmoji} ${ok ? 'En ligne' : 'Hors ligne'}${latencyStr}\n`;
       }
     }
 
