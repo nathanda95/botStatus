@@ -21,9 +21,19 @@ client.commands.set(monitorCommand.data.name, monitorCommand);
 client.once('ready', async () => {
   console.log(`✅ Connecté en tant que ${client.user.tag}`);
 
-  // Enregistrement des commandes globales
-  await client.application.commands.set([monitorCommand.data]);
-  console.log("📦 Commandes slash synchronisées");
+  // Enregistrement des commandes (guild si configuré => propagation immédiate, sinon global)
+  try {
+    if (config.guildId) {
+      const guild = await client.guilds.fetch(config.guildId);
+      await guild.commands.set([monitorCommand.data]);
+      console.log(`📦 Commandes slash synchronisées sur la guild ${config.guildId}`);
+    } else {
+      await client.application.commands.set([monitorCommand.data]);
+      console.log("📦 Commandes slash synchronisées globalement (peut prendre jusqu'à 1h)");
+    }
+  } catch (e) {
+    console.warn('⚠️ Erreur lors de la synchronisation des commandes :', e.message);
+  }
 
   // 🔄 Lancement de la boucle de mise à jour
   setInterval(async () => {
@@ -34,12 +44,23 @@ client.once('ready', async () => {
 
     let description = '';
 
-    if (!config.servers || config.servers.length === 0) {
-      description = 'Aucun serveur surveillé.';
+    const servers = config.servers || [];
+    const sites = config.sites || [];
+
+    if (servers.length === 0 && sites.length === 0) {
+      description = 'Aucun serveur ou site surveillé.';
     } else {
-      for (const server of config.servers) {
-        const isUp = await isServerUp(server.host, server.port);
-        description += `• **${server.name}** (${server.host}:${server.port}) → ${isUp ? '🟢 En ligne' : '🔴 Hors ligne'}\n`;
+      for (const server of servers) {
+        const res = await isServerUp(server.host, server.port);
+        const ok = res && res.ok;
+        const latencyStr = res && res.latency != null ? ` (${res.latency} ms)` : '';
+        description += `• **${server.name}** (${server.host}:${server.port}) → ${ok ? '🟢 En ligne' : '🔴 Hors ligne'}${latencyStr}\n`;
+      }
+      for (const site of sites) {
+        const res = await isServerUp({ url: site.url });
+        const ok = res && res.ok;
+        const latencyStr = res && res.latency != null ? ` (${res.latency} ms)` : '';
+        description += `• **${site.name}** (${site.url}) → ${ok ? '🟢 En ligne' : '🔴 Hors ligne'}${latencyStr}\n`;
       }
     }
 
